@@ -5,14 +5,14 @@ from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
-from users.models import Subscription, User
-
-from ..permissions import AnonimOrAuthenticatedReadOnly
-from ..serializers.users import (
+from api.serializers.users import (
     CustomUserSerializer,
     SubscriptionSerializer,
     SubscriptionShowSerializer
 )
+from users.models import Subscription, User
+
+from ..permissions import AnonimOrAuthenticatedReadOnly
 
 
 class CustomUserViewSet(UserViewSet):

@@ -93,17 +93,13 @@ class RecipeGETSerializer(serializers.ModelSerializer):
     def get_is_favorited(self, object):
         """Проверяет, добавил ли текущий пользователь рецепт в избанное."""
         request = self.context.get('request')
-        if request is None or request.user.is_anonymous:
-            return False
-        return request.user.favoriting.filter(recipe=object).exists()
+        return object.user.favoriting.filter(user=request.user).exists()
 
     def get_is_in_shopping_cart(self, object):
         """Проверяет, добавил ли текущий пользователь
         рецепт в список покупок."""
         request = self.context.get('request')
-        if request is None or request.user.is_anonymous:
-            return False
-        return request.user.shopping_cart.filter(recipe=object).exists()
+        return object.user.shopping_cart.filter(user=request.user).exists()
 
 
 class RecipeSerializer(serializers.ModelSerializer):
@@ -140,9 +136,9 @@ class RecipeSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     'Количество ингредиента не может быть меньше 1'
                 )
-            if int(ingredient.get('amount')) > 100:
+            if int(ingredient.get('amount')) > 5000:
                 raise serializers.ValidationError(
-                    'Количество ингредиента не может быть больше 100'
+                    'Количество ингредиента не может быть больше 5000'
                 )
         return ingredients
 
@@ -192,8 +188,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         ingredients_data = validated_data.get('ingredients')
         IngredientAmount.objects.filter(recipe=recipe).delete()
         self.add_ingredients(ingredients_data, recipe)
-        instance.save()
-        return instance
+        return super().update(instance, validated_data)
 
     def to_representation(self, recipe):
         """Определяет какой сериализатор будет использоваться для чтения."""
@@ -234,11 +229,18 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ShoppingCart
-        fields = '__all__'
-        validators = [
-            UniqueTogetherValidator(
-                queryset=ShoppingCart.objects.all(),
-                fields=('user', 'recipe'),
-                message='Вы уже добавляли это рецепт в список покупок'
+        fields = ('user', 'recipe',)
+
+    def validate(self, data):
+        user = data['user']
+        if user.shopping_list.filter(recipe=data['recipe']).exists():
+            raise serializers.ValidationError(
+                'Рецепт уже добавлен в корзину'
             )
-        ]
+        return data
+
+    def to_representation(self, instance):
+        return RecipeShortSerializer(
+            instance.recipe,
+            context={'request': self.context.get('request')}
+        ).data

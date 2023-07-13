@@ -1,8 +1,8 @@
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import RegexValidator
+from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.core.exceptions import ValidationError
 from django.db import models
-
-from backend.settings import LENGTH_TEXT
 
 
 class User(AbstractUser):
@@ -19,10 +19,7 @@ class User(AbstractUser):
         verbose_name='Имя пользователя',
         unique=True,
         db_index=True,
-        validators=[RegexValidator(
-            regex=r'^[\w.@+-]+$',
-            message='Имя пользователя содержит недопустимый символ'
-        )]
+        validators=(UnicodeUsernameValidator(),)
     )
     first_name = models.CharField(
         max_length=150,
@@ -36,10 +33,6 @@ class User(AbstractUser):
         max_length=150,
         verbose_name='пароль'
     )
-    is_admin = models.BooleanField(
-        verbose_name='администратор',
-        default=False
-    )
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = (
@@ -48,14 +41,25 @@ class User(AbstractUser):
         'last_name',
         'password'
     )
+    is_admin = models.BooleanField(
+        verbose_name='администратор',
+        default=False
+    )
+
+    def validate_username(self, data):
+        """Запрещает пользователям присваивать себе username me"""
+        if data.get('username') == 'me':
+            raise ValidationError(
+                'Использовать имя me запрещено'
+            )
 
     class Meta:
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
-        ordering = ('id',)
+        ordering = ('username',)
 
     def __str__(self):
-        return self.username[:LENGTH_TEXT]
+        return self.username[:settings.LENGTH_TEXT]
 
 
 class Subscription(models.Model):
@@ -80,7 +84,7 @@ class Subscription(models.Model):
         ordering = ('id',)
         constraints = (
             models.UniqueConstraint(
-                fields=['author', 'subscriber'],
+                fields=('author', 'subscriber'),
                 name='unique_subscription'
             ),
         )

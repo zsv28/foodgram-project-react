@@ -5,6 +5,15 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from api.serializers.recipes import (
+    FavoriteSerializer,
+    IngredientSerializer,
+    RecipeGETSerializer,
+    RecipeSerializer,
+    RecipeShortSerializer,
+    ShoppingCartSerializer,
+    TagSerializer
+)
 from recipes.models import (
     Favorite,
     Ingredient,
@@ -15,17 +24,9 @@ from recipes.models import (
 )
 
 from ..filters import IngredientSearchFilter, RecipeFilter
+from ..pagination import CustomPageNumberPagination
 from ..permissions import AuthorOrReadOnly
-from ..serializers.recipes import (
-    FavoriteSerializer,
-    IngredientSerializer,
-    RecipeGETSerializer,
-    RecipeSerializer,
-    RecipeShortSerializer,
-    ShoppingCartSerializer,
-    TagSerializer
-)
-from ..utils import create_shopping_cart
+from ..utils_shopping_cart_pdf import create_shopping_cart
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -34,7 +35,6 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = (permissions.AllowAny,)
-    pagination_class = None
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
@@ -43,10 +43,9 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = (permissions.AllowAny,)
-    pagination_class = None
-    filter_backends = (DjangoFilterBackend, )
+    filter_backends = (DjangoFilterBackend,)
     filterset_class = IngredientSearchFilter
-    search_fields = ('^name', )
+    search_fields = ('^name',)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -54,6 +53,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
+    pagination_class = CustomPageNumberPagination
     permission_classes = (
         permissions.IsAuthenticatedOrReadOnly, AuthorOrReadOnly
     )
@@ -88,29 +88,35 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(
         detail=True,
-        methods=['post', 'delete'],
+        methods=['post'],
         url_path='shopping_cart',
         url_name='shopping_cart',
         permission_classes=(permissions.IsAuthenticated,)
     )
-    def get_shopping_cart(self, request, pk):
+    def shopping_cart(self, request, pk):
         """Позволяет текущему пользователю добавлять рецепты
         в список покупок."""
-        recipe = get_object_or_404(Recipe, pk=pk)
-        if request.method == 'POST':
-            serializer = ShoppingCartSerializer(
-                data={'user': request.user.id, 'recipe': recipe.id}
-            )
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            shopping_cart_serializer = RecipeShortSerializer(recipe)
-            return Response(
-                shopping_cart_serializer.data, status=status.HTTP_201_CREATED
-            )
-        shopping_cart_recipe = get_object_or_404(
-            ShoppingCart, user=request.user, recipe=recipe
-        )
-        shopping_cart_recipe.delete()
+
+        context = {'request': request}
+        recipe = get_object_or_404(Recipe, id=pk)
+        data = {
+            'user': request.user.id,
+            'recipe': recipe.id
+        }
+        serializer = ShoppingCartSerializer(data=data, context=context)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @shopping_cart.mapping.delete
+    def destroy_shopping_cart(self, request, pk):
+        """Позволяет текущему пользователю удалять рецепты
+        из списока покупок."""
+        get_object_or_404(
+            ShoppingCart,
+            user=request.user.id,
+            recipe=get_object_or_404(Recipe, id=pk)
+            ).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(

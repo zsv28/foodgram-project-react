@@ -1,12 +1,11 @@
 from colorfield.fields import ColorField
+from django.conf import settings
 from django.core.validators import (
     MaxValueValidator,
-    MinValueValidator,
-    RegexValidator
+    MinValueValidator
 )
 from django.db import models
-
-from backend.settings import LENGTH_TEXT
+from django.db.models import UniqueConstraint
 from users.models import User
 
 
@@ -14,7 +13,7 @@ class Tag(models.Model):
     """Класс тегов."""
 
     name = models.CharField(
-        max_length=50,
+        max_length=settings.LENGTH_OF_FIELDS_RECIPES,
         verbose_name='Hазвание',
         unique=True,
         db_index=True
@@ -27,13 +26,9 @@ class Tag(models.Model):
         unique=True
     )
     slug = models.SlugField(
-        max_length=50,
+        max_length=settings.LENGTH_OF_FIELDS_RECIPES,
         verbose_name='slug',
         unique=True,
-        validators=[RegexValidator(
-            regex=r'^[-a-zA-Z0-9_]+$',
-            message='Слаг тега содержит недопустимый символ'
-        )]
     )
 
     class Meta:
@@ -42,7 +37,7 @@ class Tag(models.Model):
         ordering = ('name',)
 
     def __str__(self):
-        return self.slug[:LENGTH_TEXT]
+        return self.slug
 
 
 class Ingredient(models.Model):
@@ -54,7 +49,7 @@ class Ingredient(models.Model):
         db_index=True
     )
     measurement_unit = models.CharField(
-        max_length=10,
+        max_length=200,
         verbose_name='единица измерения'
     )
 
@@ -64,7 +59,7 @@ class Ingredient(models.Model):
         ordering = ('name',)
 
     def __str__(self):
-        return self.name[:LENGTH_TEXT]
+        return self.name[:settings.LENGTH_TEXT]
 
 
 class Recipe(models.Model):
@@ -119,7 +114,7 @@ class Recipe(models.Model):
         ordering = ('-pub_date',)
 
     def __str__(self):
-        return self.name[:LENGTH_TEXT]
+        return self.name[:settings.LENGTH_TEXT]
 
 
 class IngredientAmount(models.Model):
@@ -144,8 +139,8 @@ class IngredientAmount(models.Model):
                 message='Количество ингредиента не может быть нулевым'
             ),
             MaxValueValidator(
-                1000,
-                message='Количество ингредиента не может быть больше тысячи'
+                5000,
+                message='Количество ингредиента не может быть больше 5 тысяч'
             )
         ],
     )
@@ -156,7 +151,7 @@ class IngredientAmount(models.Model):
         ordering = ('id',)
         constraints = (
             models.UniqueConstraint(
-                fields=['recipe', 'ingredient'],
+                fields=('recipe', 'ingredient'),
                 name='unique_recipe_ingredient'
             ),
         )
@@ -165,63 +160,46 @@ class IngredientAmount(models.Model):
         return f'{self.recipe} содержит ингредиент/ты {self.ingredient}'
 
 
-class Favorite(models.Model):
-    """Класс для добавления рецептов в избранное."""
-
-    recipe = models.ForeignKey(
-        Recipe,
-        on_delete=models.CASCADE,
-        related_name='favoriting',
-        verbose_name='рецепт'
-    )
+class FavoriteShoppingCart(models.Model):
+    """ Связывающая модель списка покупок и избранного. """
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='favoriting',
-        verbose_name='Пользователь'
+        verbose_name='Пользователь',
+
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        verbose_name='Рецепт',
     )
 
     class Meta:
+        abstract = True
+        constraints = [
+            UniqueConstraint(
+                fields=('user', 'recipe'),
+                name='%(app_label)s_%(class)s_unique'
+            )
+        ]
+
+    def __str__(self):
+        return f'{self.user} :: {self.recipe}'
+
+
+class Favorite(FavoriteShoppingCart):
+    """ Модель добавление в избраное. """
+
+    class Meta(FavoriteShoppingCart.Meta):
+        default_related_name = 'favorites'
         verbose_name = 'Избранное'
         verbose_name_plural = 'Избранное'
-        ordering = ('id',)
-        constraints = (
-            models.UniqueConstraint(
-                fields=['user', 'recipe'],
-                name='unique_favorite_recipe'
-            ),
-        )
-
-    def __str__(self):
-        return f'{self.recipe} в избранном у {self.user}'
 
 
-class ShoppingCart(models.Model):
-    """Класс для составления списка покупок."""
+class ShoppingCart(FavoriteShoppingCart):
+    """ Модель списка покупок. """
 
-    recipe = models.ForeignKey(
-        Recipe,
-        on_delete=models.CASCADE,
-        related_name='shopping_cart',
-        verbose_name='рецепт'
-    )
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='shopping_cart',
-        verbose_name='Пользователь'
-    )
-
-    class Meta:
-        verbose_name = 'Рецепт пользователя для списка покупок'
-        verbose_name_plural = 'Рецепты пользователей для списка покупок'
-        ordering = ('user',)
-        constraints = (
-            models.UniqueConstraint(
-                fields=['user', 'recipe'],
-                name='unique_shopping_cart'
-            ),
-        )
-
-    def __str__(self):
-        return f'{self.recipe} в списке покупок у {self.user}'
+    class Meta(FavoriteShoppingCart.Meta):
+        default_related_name = 'shopping_list'
+        verbose_name = 'Корзина'
+        verbose_name_plural = 'Корзина'

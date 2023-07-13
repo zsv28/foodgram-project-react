@@ -9,8 +9,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY', '12345')
 
-'''DEBUG = True'''
-DEBUG = (os.getenv('DEBUG', 'False') == 'True')
+DEBUG = True
+"DEBUG = (os.getenv('DEBUG', 'False') == 'True')"
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1').split(' ')
 
@@ -24,11 +24,11 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'djoser',
-    'api.apps.ApiConfig',
     'users.apps.UsersConfig',
     'recipes.apps.RecipesConfig',
     'django_filters',
     'colorfield',
+    'api.apps.ApiConfig',
 ]
 
 MIDDLEWARE = [
@@ -66,7 +66,7 @@ if DEBUG:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+            'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
 else:
@@ -107,12 +107,12 @@ USE_L10N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = BASE_DIR / 'static'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = BASE_DIR / 'media'
 
-CSV_FILES_DIR = os.path.join(BASE_DIR, 'data')
+CSV_FILES_DIR = BASE_DIR / 'data'
 
 AUTH_USER_MODEL = 'users.User'
 
@@ -123,8 +123,6 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 6,
 }
 
 DJOSER = {
@@ -144,3 +142,4 @@ DJOSER = {
 LENGTH_TEXT = 15
 RECIPES_LIMIT = 2
 LIST_PER_PAGE = 10
+LENGTH_OF_FIELDS_RECIPES = 50

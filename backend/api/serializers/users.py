@@ -1,8 +1,8 @@
+from django.conf import settings
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
-from backend.settings import RECIPES_LIMIT
 from recipes.models import Recipe
 from users.models import Subscription, User
 
@@ -29,14 +29,6 @@ class CustomUserCreateSerializer(UserCreateSerializer):
             raise serializers.ValidationError(
                 'Использовать имя me запрещено'
             )
-        if User.objects.filter(username=data.get('username')):
-            raise serializers.ValidationError(
-                'Пользователь с таким username уже существует'
-            )
-        if User.objects.filter(email=data.get('email')):
-            raise serializers.ValidationError(
-                'Пользователь с таким email уже существует'
-            )
         return data
 
 
@@ -56,18 +48,9 @@ class CustomUserSerializer(UserSerializer):
             'is_subscribed'
         )
 
-    def validate(self, data):
-        """Запрещает пользователям изменять себе username на me."""
-        if data.get('username') == 'me':
-            raise serializers.ValidationError(
-                'Использовать имя me запрещено'
-            )
-
     def get_is_subscribed(self, object):
         """Проверяет, подписан ли текущий пользователь на автора аккаунта."""
         request = self.context.get('request')
-        if request is None or request.user.is_anonymous:
-            return False
         return object.author.filter(subscriber=request.user).exists()
 
 
@@ -127,7 +110,7 @@ class SubscriptionShowSerializer(CustomUserSerializer):
         )
 
     def get_recipes(self, object):
-        author_recipes = object.recipes.all()[:RECIPES_LIMIT]
+        author_recipes = object.recipes.all()[:settings.RECIPES_LIMIT]
         return SubscriptionRecipeShortSerializer(
             author_recipes, many=True
         ).data
