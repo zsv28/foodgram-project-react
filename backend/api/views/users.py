@@ -2,7 +2,6 @@ from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from rest_framework import permissions, status
 from rest_framework.decorators import action
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
 from api.serializers.users import (
@@ -12,6 +11,7 @@ from api.serializers.users import (
 )
 from users.models import Subscription, User
 
+from ..pagination import CustomPageNumberPagination
 from ..permissions import AnonimOrAuthenticatedReadOnly
 
 
@@ -20,6 +20,7 @@ class CustomUserViewSet(UserViewSet):
 
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
+    pagination_class = CustomPageNumberPagination
     permission_classes = (AnonimOrAuthenticatedReadOnly,)
 
     @action(
@@ -85,11 +86,10 @@ class CustomUserViewSet(UserViewSet):
         """Возвращает авторов контента, на которых подписан
         текущий пользователь.."""
         authors = User.objects.filter(author__subscriber=request.user)
-        paginator = PageNumberPagination()
-        result_pages = paginator.paginate_queryset(
-            queryset=authors, request=request
+        result_pages = self.paginate_queryset(
+            queryset=authors
         )
         serializer = SubscriptionShowSerializer(
             result_pages, context={'request': request}, many=True
         )
-        return paginator.get_paginated_response(serializer.data)
+        return self.get_paginated_response(serializer.data)

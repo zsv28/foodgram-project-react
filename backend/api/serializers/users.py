@@ -22,15 +22,6 @@ class CustomUserCreateSerializer(UserCreateSerializer):
         )
         extra_kwargs = {"password": {"write_only": True}}
 
-    def validate(self, data):
-        """Запрещает пользователям присваивать себе username me
-        и использовать повторные username и email."""
-        if data.get('username') == 'me':
-            raise serializers.ValidationError(
-                'Использовать имя me запрещено'
-            )
-        return data
-
 
 class CustomUserSerializer(UserSerializer):
     """Сериализатор для модели User."""
@@ -48,10 +39,11 @@ class CustomUserSerializer(UserSerializer):
             'is_subscribed'
         )
 
-    def get_is_subscribed(self, object):
+    def get_is_subscribed(self, author):
         """Проверяет, подписан ли текущий пользователь на автора аккаунта."""
         request = self.context.get('request')
-        return object.author.filter(subscriber=request.user).exists()
+        return (request and request.user.is_authenticated
+                and request.user.subscriber.filter(subscriber=author).exists())
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
@@ -110,10 +102,18 @@ class SubscriptionShowSerializer(CustomUserSerializer):
         )
 
     def get_recipes(self, object):
-        author_recipes = object.recipes.all()[:settings.RECIPES_LIMIT]
+        """Получаем репепты"""
+        request = self.context.get('request')
+        limit = request.GET.get('recipes_limit')
+        recipes = object.recipes.all()
+        if limit:
+            recipes = recipes[:settings.RECIPES_LIMIT]
         return SubscriptionRecipeShortSerializer(
-            author_recipes, many=True
+            recipes,
+            many=True,
+            read_only=True
         ).data
 
     def get_recipes_count(self, object):
+        """Получаем количество рецептов"""
         return object.recipes.count()

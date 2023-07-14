@@ -1,8 +1,9 @@
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
-from django.core.exceptions import ValidationError
 from django.db import models
+
+from users.validators import validate_username
 
 
 class User(AbstractUser):
@@ -15,23 +16,19 @@ class User(AbstractUser):
         db_index=True
     )
     username = models.CharField(
-        max_length=150,
+        max_length=settings.LENGTH_OF_FIELDS_USER,
         verbose_name='Имя пользователя',
         unique=True,
         db_index=True,
-        validators=(UnicodeUsernameValidator(),)
+        validators=(UnicodeUsernameValidator(), validate_username)
     )
     first_name = models.CharField(
-        max_length=150,
+        max_length=settings.LENGTH_OF_FIELDS_USER,
         verbose_name='имя'
     )
     last_name = models.CharField(
-        max_length=150,
+        max_length=settings.LENGTH_OF_FIELDS_USER,
         verbose_name='фамилия'
-    )
-    password = models.CharField(
-        max_length=150,
-        verbose_name='пароль'
     )
 
     USERNAME_FIELD = 'email'
@@ -41,17 +38,6 @@ class User(AbstractUser):
         'last_name',
         'password'
     )
-    is_admin = models.BooleanField(
-        verbose_name='администратор',
-        default=False
-    )
-
-    def validate_username(self, data):
-        """Запрещает пользователям присваивать себе username me"""
-        if data.get('username') == 'me':
-            raise ValidationError(
-                'Использовать имя me запрещено'
-            )
 
     class Meta:
         verbose_name = 'Пользователь'

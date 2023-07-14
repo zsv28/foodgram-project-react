@@ -1,6 +1,5 @@
-from django.contrib import admin
-
 from backend.settings import LIST_PER_PAGE
+from django.contrib import admin
 
 from .models import Subscription, User
 
@@ -15,11 +14,9 @@ class UserAdmin(admin.ModelAdmin):
         'email',
         'first_name',
         'last_name',
-        'password',
-        'is_admin'
+        'password'
     )
     empty_value_display = 'значение отсутствует'
-    list_editable = ('is_admin',)
     list_filter = ('username', 'email')
     list_per_page = LIST_PER_PAGE
     search_fields = ('username',)

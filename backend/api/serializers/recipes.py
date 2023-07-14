@@ -93,13 +93,15 @@ class RecipeGETSerializer(serializers.ModelSerializer):
     def get_is_favorited(self, object):
         """Проверяет, добавил ли текущий пользователь рецепт в избанное."""
         request = self.context.get('request')
-        return object.user.favoriting.filter(user=request.user).exists()
+        return (request and request.user.is_authenticated
+                and request.user.favorites.filter(recipe=object).exists())
 
     def get_is_in_shopping_cart(self, object):
         """Проверяет, добавил ли текущий пользователь
         рецепт в список покупок."""
         request = self.context.get('request')
-        return object.user.shopping_cart.filter(user=request.user).exists()
+        return (request and request.user.is_authenticated
+                and request.user.shopping_list.filter(recipe=object).exists())
 
 
 class RecipeSerializer(serializers.ModelSerializer):
@@ -174,26 +176,20 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def update(self, instance, validated_data):
-        recipe = instance
-        instance.image = validated_data.get('image', instance.image)
-        instance.name = validated_data.get('name', instance.name)
-        instance.text = validated_data.get('text', instance.name)
-        instance.cooking_time = validated_data.get(
-            'cooking_time', instance.cooking_time
-        )
         instance.tags.clear()
         instance.ingredients.clear()
-        tags_data = validated_data.get('tags')
+        tags_data = validated_data.pop('tags')
         instance.tags.set(tags_data)
-        ingredients_data = validated_data.get('ingredients')
-        IngredientAmount.objects.filter(recipe=recipe).delete()
-        self.add_ingredients(ingredients_data, recipe)
+        ingredients_data = validated_data.pop('ingredients')
+        IngredientAmount.objects.filter(recipe=instance).delete()
+        self.add_ingredients(ingredients_data, instance)
         return super().update(instance, validated_data)
 
-    def to_representation(self, recipe):
+    def to_representation(self, instance):
         """Определяет какой сериализатор будет использоваться для чтения."""
-        serializer = RecipeGETSerializer(recipe)
-        return serializer.data
+        return RecipeGETSerializer(instance, context={
+            'request': self.context.get('request')
+        }).data
 
 
 class RecipeShortSerializer(serializers.ModelSerializer):
@@ -214,14 +210,21 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Favorite
-        fields = '__all__'
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Favorite.objects.all(),
-                fields=('user', 'recipe'),
-                message='Вы уже добавляли это рецепт в избранное'
+        fields = ('user', 'recipe',)
+
+    def validate(self, data):
+        user = data['user']
+        if user.favorites.filter(recipe=data['recipe']).exists():
+            raise serializers.ValidationError(
+                'Рецепт уже добавлен в избранное.'
             )
-        ]
+        return data
+
+    def to_representation(self, instance):
+        return RecipeShortSerializer(
+            instance.recipe,
+            context={'request': self.context.get('request')}
+        ).data
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
@@ -244,3 +247,4 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
             instance.recipe,
             context={'request': self.context.get('request')}
         ).data
+
