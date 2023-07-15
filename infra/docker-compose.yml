@@ -22,11 +22,16 @@ services:
       - db
     env_file:
       - ./.env
+    restart: always
+    container_name: foodgram_backend
 
   frontend:
     image: zsvv/foodgram_frontend:latest
     volumes:
       - ../frontend/:/app/result_build/
+    depends_on:
+      - db
+    container_name: foodgram_frontend
 
   nginx:
     image: nginx:1.19.3
