@@ -81,8 +81,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     )
     def favorite(self, request, pk):
         """Позволяет текущему пользователю добавлять рецепты в избранное."""
-        response = self.favorite_shopping_cart(FavoriteSerializer, request, pk)
-        return response
+        return self.favorite_shopping_cart(FavoriteSerializer, request, pk)
 
     @favorite.mapping.delete
     def destroy_favorite(self, request, pk):
@@ -104,12 +103,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def shopping_cart(self, request, pk):
         """Позволяет текущему пользователю добавлять рецепты
         в список покупок."""
-        response = self.favorite_shopping_cart(
+        return self.favorite_shopping_cart(
             ShoppingCartSerializer,
             request,
             pk
         )
-        return response
 
     @shopping_cart.mapping.delete
     def destroy_shopping_cart(self, request, pk):
