@@ -1,8 +1,4 @@
-from .recipes import (
-    IngredientViewSet,
-    RecipeViewSet,
-    TagViewSet
-)
+from .recipes import IngredientViewSet, RecipeViewSet, TagViewSet
 from .users import CustomUserViewSet
 
 __all__ = [
