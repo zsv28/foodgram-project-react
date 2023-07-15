@@ -4,7 +4,7 @@ from .recipes import (FavoriteSerializer, IngredientAmountSerializer,
                       RecipeShortSerializer, ShoppingCartSerializer,
                       TagSerializer)
 from .users import (CustomUserCreateSerializer, CustomUserSerializer,
-                    SubscriptionSerializer, SubscriptionRecipeShortSerializer,
+                    SubscriptionRecipeShortSerializer, SubscriptionSerializer,
                     SubscriptionShowSerializer)
 
 __all__ = [

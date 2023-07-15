@@ -5,11 +5,14 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from api.serializers.recipes import (FavoriteSerializer, IngredientSerializer,
-                                     RecipeGETSerializer, RecipeSerializer,
-                                     ShoppingCartSerializer, TagSerializer)
-from recipes.models import (Favorite, Ingredient, IngredientAmount, Recipe,
-                            ShoppingCart, Tag)
+from backend.api.serializers.recipes import (FavoriteSerializer,
+                                             IngredientSerializer,
+                                             RecipeGETSerializer,
+                                             RecipeSerializer,
+                                             ShoppingCartSerializer,
+                                             TagSerializer)
+from backend.recipes.models import (Favorite, Ingredient, IngredientAmount,
+                                    Recipe, ShoppingCart, Tag)
 
 from ..filters import IngredientSearchFilter, RecipeFilter
 from ..pagination import CustomPageNumberPagination

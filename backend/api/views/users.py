@@ -4,10 +4,10 @@ from rest_framework import permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from api.serializers.users import (CustomUserSerializer,
-                                   SubscriptionSerializer,
-                                   SubscriptionShowSerializer)
-from users.models import Subscription, User
+from backend.api.serializers.users import (CustomUserSerializer,
+                                           SubscriptionSerializer,
+                                           SubscriptionShowSerializer)
+from backend.users.models import Subscription, User
 
 from ..pagination import CustomPageNumberPagination
 from ..permissions import AnonimOrAuthenticatedReadOnly
