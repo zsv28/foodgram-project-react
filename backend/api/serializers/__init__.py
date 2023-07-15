@@ -1,21 +1,11 @@
-from .recipes import (
-    FavoriteSerializer,
-    IngredientAmountSerializer,
-    IngredientFullSerializer,
-    IngredientSerializer,
-    RecipeGETSerializer,
-    RecipeSerializer,
-    RecipeShortSerializer,
-    ShoppingCartSerializer,
-    TagSerializer,
-)
-from .users import (
-    CustomUserCreateSerializer,
-    CustomUserSerializer,
-    SubscriptionSerializer,
-    SubscriptionRecipeShortSerializer,
-    SubscriptionShowSerializer
-)
+from .recipes import (FavoriteSerializer, IngredientAmountSerializer,
+                      IngredientFullSerializer, IngredientSerializer,
+                      RecipeGETSerializer, RecipeSerializer,
+                      RecipeShortSerializer, ShoppingCartSerializer,
+                      TagSerializer)
+from .users import (CustomUserCreateSerializer, CustomUserSerializer,
+                    SubscriptionSerializer, SubscriptionRecipeShortSerializer,
+                    SubscriptionShowSerializer)
 
 __all__ = [
     CustomUserCreateSerializer,
