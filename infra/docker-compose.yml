@@ -22,7 +22,6 @@ services:
       - db
     env_file:
       - ./.env
-    restart: always
     container_name: foodgram_backend
 
   frontend:
