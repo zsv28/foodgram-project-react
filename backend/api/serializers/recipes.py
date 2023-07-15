@@ -2,8 +2,8 @@ from django.db import transaction
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
-from backend.recipes.models import (Favorite, Ingredient, IngredientAmount,
-                                    Recipe, ShoppingCart, Tag)
+from recipes.models import (Favorite, Ingredient, IngredientAmount, Recipe,
+                            ShoppingCart, Tag)
 
 from .users import CustomUserSerializer
 

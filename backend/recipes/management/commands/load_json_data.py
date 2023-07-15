@@ -2,7 +2,7 @@ import json
 
 from django.core.management.base import BaseCommand
 
-from backend.recipes.models import Ingredient, Tag
+from recipes.models import Ingredient, Tag
 
 
 class Command(BaseCommand):
