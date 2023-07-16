@@ -68,7 +68,7 @@ class RecipeAdmin(admin.ModelAdmin):
     list_editable = ('author',)
     list_filter = ('author', 'name', 'tags')
     list_per_page = settings.LIST_PER_PAGE
-    search_fields = ('author', 'name')
+    search_fields = ('author__username', 'name',)
 
     def get_ingredients(self, object):
         """Получает ингредиент или список ингредиентов рецепта."""
@@ -118,7 +118,7 @@ class FavoriteAdmin(admin.ModelAdmin):
     empty_value_display = 'значение отсутствует'
     list_editable = ('user', 'recipe')
     list_filter = ('user',)
-    search_fields = ('user',)
+    search_fields = ('user__username',)
     list_per_page = settings.LIST_PER_PAGE
 
 
@@ -135,5 +135,5 @@ class ShoppingCartAdmin(admin.ModelAdmin):
     empty_value_display = 'значение отсутствует'
     list_editable = ('user', 'recipe')
     list_filter = ('user',)
-    search_fields = ('user',)
+    search_fields = ('user__username',)
     list_per_page = settings.LIST_PER_PAGE
