@@ -100,7 +100,7 @@ class RecipeGETSerializer(serializers.ModelSerializer):
 class RecipeSerializer(serializers.ModelSerializer):
     """Сериализатор объектов класса Recipe при небезопасных запросах."""
     ingredients = IngredientAmountSerializer(many=True)
-    image = Base64ImageField(use_url=True, max_length=None)
+    image = Base64ImageField(max_length=None)
     author = CustomUserSerializer(read_only=True)
 
     class Meta:
@@ -211,10 +211,6 @@ class FavoriteSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Рецепт уже добавлен в избранное.'
             )
-        if not user.favorites.filter(recipe=data['recipe']).exists():
-            raise serializers.ValidationError(
-                'Рецепт не найден в избранном'
-            )
         return data
 
     def to_representation(self, instance):
@@ -236,10 +232,6 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
         if user.shopping_list.filter(recipe=data['recipe']).exists():
             raise serializers.ValidationError(
                 'Рецепт уже добавлен в корзину'
-            )
-        if not user.shopping_list.filter(recipe=data['recipe']).exists():
-            raise serializers.ValidationError(
-                'Рецепт не найден в корзине'
             )
         return data
 

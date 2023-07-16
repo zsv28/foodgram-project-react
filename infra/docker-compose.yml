@@ -12,6 +12,7 @@ services:
       - postgres_data:/var/lib/postgresql/data/
     env_file:
       - ./.env
+    container_name: foodgram_db
 
   backend:
     image: zsvv/foodgram_backend:latest
@@ -42,4 +43,4 @@ services:
       - "8080:80"
     depends_on:
       - backend
-      - frontend
+    container_name: foodgram_nginx
