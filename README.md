@@ -1,4 +1,4 @@
-[![Foodgram workflow](https://github.com/zsv28/foodgram-project-react/actions/workflows/workflow_foodgram.yml/badge.svg)]
+![Foodgram workflow](https://github.com/zsv28/foodgram-project-react/actions/workflows/workflow_foodgram.yml/badge.svg)
 
 [![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=22&pause=1000&color=F7A113&background=FFD9EA00&width=435&lines=Foodgram+-+%D0%BF%D1%80%D0%BE%D0%B4%D1%83%D0%BA%D1%82%D0%BE%D0%B2%D1%8B%D0%B9+%D0%BF%D0%BE%D0%BC%D0%BE%D1%89%D0%BD%D0%B8%D0%BA)](https://git.io/typing-svg)
  
@@ -184,5 +184,5 @@ User - test@test.ru
        test12345678
 ```
 
-[![Github](https://icons8.ru/icon/fmFqQmR0UdsR/github)](https://github.com/zsv28)
+[![portfolio](https://img.shields.io/badge/my_portfolio-000?style=for-the-badge&logo=ko-fi&logoColor=white)](https://github.com/zsv28)
 
